@@ -7,7 +7,10 @@ import GalleryView from "./components/GalleryView";
 import ReviewForm from "./components/ReviewForm";
 
 export default function App() {
-  const fileInputRef = useRef(null);
+  // NEW: Two separate refs for two separate actions
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
+
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [capturedImages, setCapturedImages] = useState([]);
   const [activeTab, setActiveTab] = useState("Scan");
@@ -21,23 +24,24 @@ export default function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const triggerCamera = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
+  // NEW: Two separate trigger functions
+  const triggerCameraDirect = () => {
+    if (cameraInputRef.current) cameraInputRef.current.click();
+  };
+  const triggerGalleryDirect = () => {
+    if (galleryInputRef.current) galleryInputRef.current.click();
   };
 
-  // UPGRADED: Now loops through multiple selected files and compresses all of them
   const handleCapture = (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // Convert the FileList object into an array and loop through each file
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
 
       reader.onloadend = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Compress image
           const MAX_WIDTH = 1200;
           const scaleSize = MAX_WIDTH / img.width;
           const canvas = document.createElement("canvas");
@@ -48,8 +52,6 @@ export default function App() {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
           const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-
-          // Add this compressed image to our state array
           setCapturedImages((prev) => [...prev, compressedBase64]);
         };
         img.src = e.target.result;
@@ -58,7 +60,6 @@ export default function App() {
       reader.readAsDataURL(file);
     });
 
-    // Reset the input so you can select the exact same files again if needed
     event.target.value = "";
   };
 
@@ -75,7 +76,10 @@ export default function App() {
     setIsProcessing(true);
 
     try {
-      const backendUrl = `http://${window.location.hostname}:5000/api/extract`;
+      const baseUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        `http://${window.location.hostname}:5000`;
+      const backendUrl = `${baseUrl}/api/extract`;
 
       const response = await fetch(backendUrl, {
         method: "POST",
@@ -89,9 +93,7 @@ export default function App() {
       setAiData(data);
     } catch (error) {
       console.error(error);
-      alert(
-        "Network Error: Could not reach the backend. Ensure your Node server is running on port 5000.",
-      );
+      alert("Network Error: Could not reach the backend.");
       setActiveTab("Scan");
     } finally {
       setIsProcessing(false);
@@ -104,13 +106,22 @@ export default function App() {
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-white font-sans antialiased select-none">
       <Header />
 
-      {/* UPGRADED: Added the 'multiple' attribute to allow multi-select on desktop */}
+      {/* NEW: Input 1 - Bypasses OS popup, instantly opens the Camera */}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        ref={cameraInputRef}
+        onChange={handleCapture}
+        className="hidden"
+      />
+
+      {/* NEW: Input 2 - Bypasses OS popup, instantly opens the Gallery with multi-select enabled */}
       <input
         type="file"
         accept="image/*"
         multiple
-        capture="camera"
-        ref={fileInputRef}
+        ref={galleryInputRef}
         onChange={handleCapture}
         className="hidden"
       />
@@ -119,11 +130,15 @@ export default function App() {
         {activeTab === "Review" ? (
           <ReviewForm aiData={aiData} isProcessing={isProcessing} />
         ) : capturedImages.length === 0 ? (
-          <ScanEmptyState triggerCamera={triggerCamera} />
+          <ScanEmptyState
+            triggerCamera={triggerCameraDirect}
+            triggerGallery={triggerGalleryDirect}
+          />
         ) : (
           <GalleryView
             capturedImages={capturedImages}
-            triggerCamera={triggerCamera}
+            triggerCamera={triggerCameraDirect}
+            triggerGallery={triggerGalleryDirect}
             removeImage={removeImage}
             handleProcessImages={handleProcessImages}
           />

@@ -1,8 +1,13 @@
-import { CloudUpload, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  CloudUpload,
+  Sparkles,
+  CheckCircle2,
+  Loader2,
+  Calendar,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function ReviewForm({ aiData, isProcessing }) {
-  // 1. Added 'age' to the state
   const [formData, setFormData] = useState({
     name: aiData?.name || "",
     dob: aiData?.dob || "",
@@ -17,12 +22,10 @@ export default function ReviewForm({ aiData, isProcessing }) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Load AI Data when it arrives
   useEffect(() => {
     if (aiData) setFormData((prev) => ({ ...prev, ...aiData }));
   }, [aiData]);
 
-  // 2. NEW: Auto-calculate Age whenever DOB changes
   useEffect(() => {
     if (formData.dob) {
       const birthDate = new Date(formData.dob);
@@ -30,7 +33,6 @@ export default function ReviewForm({ aiData, isProcessing }) {
       let calculatedAge = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
-      // Subtract a year if they haven't had their birthday yet this year
       if (
         monthDiff < 0 ||
         (monthDiff === 0 && today.getDate() < birthDate.getDate())
@@ -38,7 +40,6 @@ export default function ReviewForm({ aiData, isProcessing }) {
         calculatedAge--;
       }
 
-      // Update the age field automatically if valid
       if (!isNaN(calculatedAge) && calculatedAge > 0) {
         setFormData((prev) =>
           prev.age !== calculatedAge.toString()
@@ -55,7 +56,10 @@ export default function ReviewForm({ aiData, isProcessing }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch("http://localhost:5000/api/save", {
+      const baseUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        `http://${window.location.hostname}:5000`;
+      const response = await fetch(`${baseUrl}/api/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -71,21 +75,41 @@ export default function ReviewForm({ aiData, isProcessing }) {
     }
   };
 
-  const ModernInput = ({ label, name, type = "text", placeholder }) => (
-    <div className="mb-4 w-full">
-      <label className="block text-[12px] font-semibold text-gray-500 ml-1 mb-1.5">
-        {label}
-      </label>
-      <input
-        type={type}
-        name={name}
-        value={formData[name]}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="w-full bg-gray-100 border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium"
-      />
-    </div>
-  );
+  // UPGRADED: Custom universal Calendar icon for Date inputs
+  const ModernInput = ({ label, name, type = "text", placeholder }) => {
+    const isDate = type === "date";
+
+    return (
+      <div className="mb-4 w-full">
+        <label className="block text-[12px] font-semibold text-gray-500 ml-1 mb-1.5">
+          {label}
+        </label>
+        <div className="relative flex items-center">
+          <input
+            type={type}
+            name={name}
+            value={formData[name]}
+            onChange={handleChange}
+            placeholder={placeholder}
+            className={`w-full bg-gray-100 border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium z-10 bg-transparent
+              ${isDate ? "[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer cursor-pointer" : ""}
+              ${type === "number" ? "[&::-webkit-inner-spin-button]:hidden" : ""}
+            `}
+          />
+
+          {/* Custom Calendar Icon injected behind the invisible native input */}
+          {isDate && (
+            <div className="absolute right-4 text-gray-400 pointer-events-none">
+              <Calendar size={18} strokeWidth={2.5} />
+            </div>
+          )}
+
+          {/* Solid background behind the transparent input to maintain the design */}
+          <div className="absolute inset-0 bg-gray-100 rounded-2xl -z-10 transition-colors"></div>
+        </div>
+      </div>
+    );
+  };
 
   const SkeletonInput = ({ heightClass = "h-[52px]" }) => (
     <div className="mb-4 animate-pulse w-full">
@@ -134,7 +158,6 @@ export default function ReviewForm({ aiData, isProcessing }) {
         placeholder="Name from document"
       />
 
-      {/* 3. NEW: DOB and Age placed side-by-side */}
       <div className="flex gap-3">
         <div className="flex-[2]">
           <ModernInput label="Date of Birth" name="dob" type="date" />
@@ -161,7 +184,7 @@ export default function ReviewForm({ aiData, isProcessing }) {
           onChange={handleChange}
           placeholder="Address from document"
           rows="3"
-          className="w-full bg-gray-100 border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium resize-none"
+          className="w-full bg-gray-100 border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium resize-none relative z-10"
         />
       </div>
 

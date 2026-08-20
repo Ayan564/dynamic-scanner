@@ -26,19 +26,9 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 px-4 pt-10 pb-4 flex flex-col items-center justify-center border-b border-gray-100 shadow-sm relative">
-      {/* NEW: Tilted Corner Rectangle Button */}
-      {deferredPrompt && (
-        <button
-          onClick={handleInstall}
-          className="absolute top-10 right-4 bg-blue-600 text-white border border-blue-700 py-1.5 px-3 flex items-center gap-1.5 text-[11px] font-bold shadow-md active:scale-95 transition-transform rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm"
-        >
-          <Download size={14} strokeWidth={2.5} />
-          Install App
-        </button>
-      )}
-
-      <div className="w-20 h-20 mb-3 rounded-2xl overflow-hidden border border-gray-200 shadow-md flex items-center justify-center bg-slate-900 relative">
+    <header className="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 pt-10 pb-3 flex items-center gap-3 border-b border-gray-100 shadow-sm">
+      {/* Left Side: Logo */}
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200 shadow-sm flex items-center justify-center bg-slate-900 shrink-0">
         <img
           src="/security.svg"
           alt="Dynamic Security Logo"
@@ -46,13 +36,26 @@ export default function Header() {
         />
       </div>
 
-      <h1 className="font-extrabold text-[15px] text-gray-900 tracking-tight text-center leading-tight px-2 mt-1">
-        Dynamic Security And Manpower Services Private Limited
-      </h1>
+      {/* Middle: Text Container (Flex-1 allows it to take up remaining space) */}
+      <div className="flex flex-col justify-center flex-1 min-w-0">
+        <h1 className="font-extrabold text-[12px] text-gray-900 tracking-tight leading-snug">
+          Dynamic Security And Manpower Services Private Limited
+        </h1>
+        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+          Developed by Ayan Maity
+        </p>
+      </div>
 
-      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-2">
-        Developed by Ayan Maity
-      </p>
+      {/* Right Side: Install Button (Only shows if not installed) */}
+      {deferredPrompt && (
+        <button
+          onClick={handleInstall}
+          className="shrink-0 bg-blue-600 text-white border border-blue-700 py-1.5 px-2.5 flex items-center gap-1 text-[10px] font-bold shadow-md active:scale-95 transition-transform rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm"
+        >
+          <Download size={14} strokeWidth={2.5} />
+          Install
+        </button>
+      )}
     </header>
   );
 }
