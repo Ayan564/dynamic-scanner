@@ -75,7 +75,6 @@ export default function ReviewForm({ aiData, isProcessing }) {
     }
   };
 
-  // UPGRADED: Custom universal Calendar icon for Date inputs
   const ModernInput = ({ label, name, type = "text", placeholder }) => {
     const isDate = type === "date";
 
@@ -90,21 +89,24 @@ export default function ReviewForm({ aiData, isProcessing }) {
             name={name}
             value={formData[name]}
             onChange={handleChange}
+            // NEW: Forces the mobile native date wheel to open even without the arrow
+            onClick={(e) =>
+              isDate && e.target.showPicker && e.target.showPicker()
+            }
             placeholder={placeholder}
-            className={`w-full bg-gray-100 border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium z-10 bg-transparent
-              ${isDate ? "[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer cursor-pointer" : ""}
+            // NEW: Added appearance-none and stricter hidden classes
+            className={`w-full border border-transparent text-gray-900 text-[15px] rounded-2xl px-4 py-3.5 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-gray-400 font-medium z-10 appearance-none bg-transparent cursor-pointer
+              ${isDate ? "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-moz-calendar-picker-indicator]:hidden [&::-webkit-clear-button]:hidden" : ""}
               ${type === "number" ? "[&::-webkit-inner-spin-button]:hidden" : ""}
             `}
           />
 
-          {/* Custom Calendar Icon injected behind the invisible native input */}
           {isDate && (
-            <div className="absolute right-4 text-gray-400 pointer-events-none">
+            <div className="absolute right-4 text-gray-400 pointer-events-none z-0">
               <Calendar size={18} strokeWidth={2.5} />
             </div>
           )}
 
-          {/* Solid background behind the transparent input to maintain the design */}
           <div className="absolute inset-0 bg-gray-100 rounded-2xl -z-10 transition-colors"></div>
         </div>
       </div>
