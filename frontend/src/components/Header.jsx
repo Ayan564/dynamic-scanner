@@ -26,8 +26,11 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 pt-10 pb-3 flex items-center gap-3 border-b border-gray-100 shadow-sm">
-      {/* Left Side: Logo */}
+    <header
+      className="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 pb-3 flex items-center gap-3 border-b border-gray-100 shadow-sm"
+      // Automatically uses the iPhone/Android status bar size, falling back to 16px if unavailable
+      style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}
+    >
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200 shadow-sm flex items-center justify-center bg-slate-900 shrink-0">
         <img
           src="/security.svg"
@@ -36,7 +39,6 @@ export default function Header() {
         />
       </div>
 
-      {/* Middle: Text Container (Flex-1 allows it to take up remaining space) */}
       <div className="flex flex-col justify-center flex-1 min-w-0">
         <h1 className="font-extrabold text-[12px] text-gray-900 tracking-tight leading-snug">
           Dynamic Security And Manpower Services Private Limited
@@ -46,7 +48,6 @@ export default function Header() {
         </p>
       </div>
 
-      {/* Right Side: Install Button (Only shows if not installed) */}
       {deferredPrompt && (
         <button
           onClick={handleInstall}

@@ -8,61 +8,70 @@ export default function GalleryView({
   handleProcessImages,
 }) {
   return (
-    <div className="px-5 pt-6 pb-6 flex-grow flex flex-col h-full animate-in fade-in duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-[20px] font-extrabold text-gray-900 tracking-tight">
-          Scanned Documents{" "}
-          <span className="text-blue-600 ml-1">({capturedImages.length})</span>
-        </h2>
+    <div className="flex flex-col bg-gray-50/30 animate-in fade-in duration-300 w-full min-h-full relative">
+      {/* Sticky Header */}
+      <div className="px-5 pt-5 pb-4 flex items-center justify-between bg-white/90 backdrop-blur-lg sticky top-0 z-30 border-b border-gray-200/60 shadow-sm">
+        <div>
+          <h2 className="text-[20px] font-extrabold text-gray-900 tracking-tight leading-tight">
+            Documents
+          </h2>
+          <p className="text-[12px] font-bold text-gray-500">
+            {capturedImages.length} files attached
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={triggerCamera}
+            className="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-full flex items-center justify-center text-blue-600 shadow-sm shadow-blue-500/10 active:scale-90 transition-transform"
+          >
+            <Camera size={20} strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={triggerGallery}
+            className="w-11 h-11 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-full flex items-center justify-center text-purple-600 shadow-sm shadow-purple-500/10 active:scale-90 transition-transform"
+          >
+            <ImageIcon size={20} strokeWidth={2.5} />
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 overflow-y-auto pb-4 hide-scrollbar flex-grow">
+      {/* Image Grid */}
+      <div className="px-5 pt-5 pb-6 grid grid-cols-2 gap-4 content-start">
         {capturedImages.map((imgSrc, index) => (
           <div
             key={index}
-            className="relative group rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm aspect-[3/4] bg-gray-50"
+            className="relative group rounded-2xl overflow-hidden shadow-sm aspect-[3/4] bg-white border border-gray-200 ring-1 ring-black/5"
           >
             <img
               src={imgSrc}
               alt={`Scan ${index + 1}`}
               className="w-full h-full object-cover"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             <button
               onClick={() => removeImage(index)}
-              className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white p-2 rounded-full shadow-lg active:scale-90 transition-transform"
+              className="absolute top-2 right-2 bg-white/95 backdrop-blur-md text-red-500 p-2 rounded-full shadow-md active:scale-90 transition-transform"
             >
               <Trash2 size={16} strokeWidth={2.5} />
             </button>
           </div>
         ))}
-
-        {/* Split "Add More" buttons in the grid */}
-        <div className="flex flex-col gap-2 h-full aspect-[3/4]">
-          <button
-            onClick={triggerCamera}
-            className="flex-1 border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center text-blue-500 bg-blue-50/50 active:bg-blue-50 transition-colors"
-          >
-            <Camera size={24} className="mb-1" />
-            <span className="text-[11px] font-bold">Camera</span>
-          </button>
-
-          <button
-            onClick={triggerGallery}
-            className="flex-1 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-600 bg-gray-50/50 active:bg-gray-100 transition-colors"
-          >
-            <ImageIcon size={24} className="mb-1" />
-            <span className="text-[11px] font-bold">Gallery</span>
-          </button>
-        </div>
       </div>
 
-      <button
-        onClick={handleProcessImages}
-        className="mt-2 w-full bg-gray-900 text-white rounded-2xl h-14 flex items-center justify-center gap-2 font-bold text-[16px] shadow-lg active:scale-[0.98] transition-transform"
-      >
-        <Sparkles size={20} strokeWidth={2.5} className="text-blue-400" />
-        Extract Data with AI
-      </button>
+      {/* Extract Button - Now scrolls naturally at the end of the document list */}
+      <div className="px-5 mt-2 w-full pb-[calc(80px+env(safe-area-inset-bottom))]">
+        <button
+          onClick={handleProcessImages}
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl h-14 flex items-center justify-center gap-2 font-bold text-[16px] shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-transform border border-blue-500"
+        >
+          <Sparkles
+            size={20}
+            strokeWidth={2.5}
+            className="text-white drop-shadow-md"
+          />
+          Extract Data
+        </button>
+      </div>
     </div>
   );
 }
