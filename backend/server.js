@@ -17,10 +17,6 @@ const auth = new google.auth.GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
-// ==========================================
-// 1. CONCURRENCY FIX: Async FIFO Request Queue
-// Forces simultaneous requests to process one by one
-// ==========================================
 class RequestQueue {
   constructor() {
     this.queue = [];
@@ -49,17 +45,14 @@ class RequestQueue {
 }
 const extractionQueue = new RequestQueue();
 
-// Cold Start Wakeup Endpoint
 app.get("/api/wakeup", (req, res) => res.status(200).json({ status: "awake" }));
 
-// AI Extraction Endpoint
 app.post("/api/extract", async (req, res) => {
   try {
     const { images } = req.body;
     if (!images || images.length === 0)
       return res.status(400).json({ error: "No images provided." });
 
-    // Send the request into the safety queue
     const extractedData = await extractionQueue.add(async () => {
       const imageParts = images.map((base64String) => ({
         inlineData: {
@@ -70,35 +63,28 @@ app.post("/api/extract", async (req, res) => {
         },
       }));
 
-      // ==========================================
-      // 2. LIMITS & ACCURACY FIX: 3.6-Flash + JSON Mode
-      // ==========================================
+      // Updated to gemini-3.5-flash-lite with JSON mode
       const model = genAI.getGenerativeModel({
-        model: "gemini-3.6-flash",
+        model: "gemini-3.5-flash-lite",
         generationConfig: { responseMimeType: "application/json" },
       });
-
       const prompt = `
         You are a highly accurate data extraction AI for an enterprise security application. 
-        I am providing you with multiple images of a new employee's onboarding packet (Aadhaar, PAN, forms).
-        
-        Extract the following information and return ONLY a valid JSON object.
+        Extract the following information from the provided document images and return ONLY a valid JSON object.
         1. name: Full Name.
         2. dob: Date of Birth (YYYY-MM-DD format).
         3. gender: Extract the gender (e.g., Male, Female).
         4. mobile: 10-digit mobile number.
         5. address: Full residential address.
-        6. division: Look at the PIN code in the address. Determine the specific Area/Division name that corresponds to that PIN code in India. Leave blank if unsure.
+        6. division: Extract the accurate Indian Postal Division name based on the PIN code and locality written in the address (for example, PIN 721423 or Balisai corresponds to Contai Division). Do not blindly default to Tamluk; map it to its correct postal division.
         7. qualification: Look for any school passing certificates (e.g., 10th Pass, B.A.). Leave blank if none.
         
-        JSON Schema to strictly follow:
+        JSON Schema required:
         { "name": "", "dob": "", "gender": "", "mobile": "", "address": "", "division": "", "qualification": "" }
       `;
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const text = (await result.response).text();
-
-      // Parse and return the perfectly formatted JSON
       return JSON.parse(text);
     });
 
@@ -109,7 +95,6 @@ app.post("/api/extract", async (req, res) => {
   }
 });
 
-// Google Sheets Sync Endpoint
 app.post("/api/save", async (req, res) => {
   try {
     const data = req.body;

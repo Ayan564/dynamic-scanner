@@ -8,35 +8,21 @@ export default function GalleryView({
   handleProcessImages,
 }) {
   return (
-    <div className="flex flex-col bg-gray-50/30 animate-in fade-in duration-300 w-full min-h-full relative">
-      {/* Sticky Header */}
-      <div className="px-5 pt-5 pb-4 flex items-center justify-between bg-white/90 backdrop-blur-lg sticky top-0 z-30 border-b border-gray-200/60 shadow-sm">
+    <div className="px-5 pt-6 pb-40 max-w-md mx-auto flex-grow w-full bg-gray-50/30 animate-in fade-in duration-300 relative">
+      {/* Header - Matches ReviewForm layout style */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-[20px] font-extrabold text-gray-900 tracking-tight leading-tight">
+          <h2 className="text-[22px] font-extrabold text-gray-900 tracking-tight">
             Documents
           </h2>
-          <p className="text-[12px] font-bold text-gray-500">
+          <p className="text-[12px] font-bold text-gray-500 mt-0.5">
             {capturedImages.length} files attached
           </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={triggerCamera}
-            className="w-11 h-11 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-full flex items-center justify-center text-blue-600 shadow-sm shadow-blue-500/10 active:scale-90 transition-transform"
-          >
-            <Camera size={20} strokeWidth={2.5} />
-          </button>
-          <button
-            onClick={triggerGallery}
-            className="w-11 h-11 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-full flex items-center justify-center text-purple-600 shadow-sm shadow-purple-500/10 active:scale-90 transition-transform"
-          >
-            <ImageIcon size={20} strokeWidth={2.5} />
-          </button>
         </div>
       </div>
 
       {/* Image Grid */}
-      <div className="px-5 pt-5 pb-6 grid grid-cols-2 gap-4 content-start">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         {capturedImages.map((imgSrc, index) => (
           <div
             key={index}
@@ -58,18 +44,37 @@ export default function GalleryView({
         ))}
       </div>
 
-      {/* Extract Button - Now scrolls naturally at the end of the document list */}
-      <div className="px-5 mt-2 w-full pb-[calc(80px+env(safe-area-inset-bottom))]">
+      {/* Extract Data Button - Sits at the bottom of the scrollable flow */}
+      <button
+        onClick={handleProcessImages}
+        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl h-14 flex items-center justify-center gap-2 font-bold text-[16px] shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-transform border border-blue-500"
+      >
+        <Sparkles
+          size={20}
+          strokeWidth={2.5}
+          className="text-white drop-shadow-md"
+        />
+        Extract Data
+      </button>
+
+      {/* Floating Action Buttons (FAB) - Vertically Stacked on Bottom Right for One-Handed Use */}
+      <div className="fixed right-5 bottom-[calc(75px+env(safe-area-inset-bottom))] z-40 flex flex-col gap-3">
+        {/* Gallery Upload Button */}
         <button
-          onClick={handleProcessImages}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl h-14 flex items-center justify-center gap-2 font-bold text-[16px] shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-transform border border-blue-500"
+          onClick={triggerGallery}
+          className="w-14 h-14 bg-white border border-purple-200 rounded-full flex items-center justify-center text-purple-600 shadow-xl shadow-purple-500/25 active:scale-90 transition-transform"
+          title="Upload from Gallery"
         >
-          <Sparkles
-            size={20}
-            strokeWidth={2.5}
-            className="text-white drop-shadow-md"
-          />
-          Extract Data
+          <ImageIcon size={22} strokeWidth={2.5} />
+        </button>
+
+        {/* Camera Capture Button */}
+        <button
+          onClick={triggerCamera}
+          className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400 rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-600/30 active:scale-90 transition-transform"
+          title="Capture Photo"
+        >
+          <Camera size={22} strokeWidth={2.5} />
         </button>
       </div>
     </div>

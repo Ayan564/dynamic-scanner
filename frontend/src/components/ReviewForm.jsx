@@ -130,9 +130,13 @@ export default function ReviewForm({ aiData, isProcessing, onSuccessSync }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Dynamic route: Uses Render URL if provided, otherwise defaults to Vercel Serverless
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
-      const endpoint = backendUrl ? `${backendUrl}/api/save` : "/api/save";
+      // Smart routing: Uses Render URL if set, defaults to localhost:5000 for local dev, or /api/save for Vercel production
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      const endpoint = backendUrl
+        ? `${backendUrl}/api/save`
+        : import.meta.env.DEV
+          ? "http://localhost:5000/api/save"
+          : "/api/save";
 
       const response = await fetch(endpoint, {
         method: "POST",

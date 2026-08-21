@@ -16,11 +16,12 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [aiData, setAiData] = useState(null);
 
-  const [touchStart, setTouchStart] = useState({ x: null, y: null });
-  const [touchEnd, setTouchEnd] = useState({ x: null, y: null });
+  // Real-time finger-tracking drag state
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = useRef(0);
 
   useEffect(() => {
-    // Wake up Render backend if configured; otherwise safely ignored
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     if (backendUrl) {
       fetch(`${backendUrl}/api/wakeup`).catch(() =>
@@ -78,10 +79,13 @@ export default function App() {
     setActiveTab("Review");
     setIsProcessing(true);
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+      // Smart routing: Uses Render URL if set, defaults to localhost:5000 for local dev, or /api/extract for Vercel production
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
       const endpoint = backendUrl
         ? `${backendUrl}/api/extract`
-        : "/api/extract";
+        : import.meta.env.DEV
+          ? "http://localhost:5000/api/extract"
+          : "/api/extract";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -101,30 +105,46 @@ export default function App() {
     }
   };
 
-  // Touch handlers for horizontal swipe navigation
+  // Fluid Touch Drag Handlers (YouTube / Instagram Style)
   const onTouchStart = (e) => {
-    setTouchEnd({ x: null, y: null });
-    setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY,
-    });
+    startXRef.current = e.targetTouches[0].clientX;
+    setIsDragging(true);
   };
-  const onTouchMove = (e) =>
-    setTouchEnd({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY,
-    });
-  const onTouchEnd = () => {
-    if (!touchStart.x || !touchEnd.x) return;
-    const distanceX = touchStart.x - touchEnd.x;
-    const distanceY = touchStart.y - touchEnd.y;
-    if (Math.abs(distanceX) > Math.abs(distanceY)) {
-      if (distanceX > 45 && activeTab === "Scan") setActiveTab("Review");
-      if (distanceX < -45 && activeTab === "Review") setActiveTab("Scan");
+
+  const onTouchMove = (e) => {
+    if (!isDragging) return;
+    const currentX = e.targetTouches[0].clientX;
+    const diff = currentX - startXRef.current;
+
+    // Add rubber band resistance if trying to swipe past boundaries
+    if (activeTab === "Scan" && diff > 0) {
+      setDragOffset(diff * 0.3);
+    } else if (activeTab === "Review" && diff < 0) {
+      setDragOffset(diff * 0.3);
+    } else {
+      setDragOffset(diff);
     }
   };
 
+  const onTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    const threshold = window.innerWidth * 0.25; // 25% drag threshold to switch tabs
+    if (activeTab === "Scan" && dragOffset < -threshold) {
+      setActiveTab("Review");
+    } else if (activeTab === "Review" && dragOffset > threshold) {
+      setActiveTab("Scan");
+    }
+    setDragOffset(0);
+  };
+
   if (!isMobile) return <DesktopBlocker />;
+
+  // Calculate real-time translation percentage
+  const baseTranslate = activeTab === "Review" ? -100 : 0;
+  const offsetPercent = (dragOffset / window.innerWidth) * 100;
+  const currentTranslate = baseTranslate + offsetPercent;
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-gray-50 font-sans antialiased select-none relative">
@@ -153,10 +173,12 @@ export default function App() {
         onTouchEnd={onTouchEnd}
       >
         <div
-          className="flex w-full h-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          className="flex w-full h-full"
           style={{
-            transform:
-              activeTab === "Review" ? "translateX(-100%)" : "translateX(0)",
+            transform: `translateX(${currentTranslate}%)`,
+            transition: isDragging
+              ? "none"
+              : "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
           }}
         >
           {/* Scan Tab Pane */}
